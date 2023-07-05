@@ -28,6 +28,22 @@ func TestFancyEncoder(t *testing.T) {
 		zap.Object("obj", zapcore.ObjectMarshalerFunc(func(enc zapcore.ObjectEncoder) error {
 			enc.AddString("name", "John")
 			enc.AddInt("age", 32)
+			_ = enc.AddArray("arr", zapcore.ArrayMarshalerFunc(func(arr zapcore.ArrayEncoder) error {
+				arr.AppendString("a")
+				arr.AppendString("b")
+				_ = arr.AppendArray(zapcore.ArrayMarshalerFunc(func(arr zapcore.ArrayEncoder) error {
+					arr.AppendString("c1")
+					arr.AppendString("c2")
+					return nil
+				}))
+				arr.AppendString("d")
+				_ = arr.AppendObject(zapcore.ObjectMarshalerFunc(func(enc zapcore.ObjectEncoder) error {
+					enc.AddString("name", "John")
+					enc.AddInt("age", 32)
+					return nil
+				}))
+				return nil
+			}))
 			return nil
 		})),
 	)
