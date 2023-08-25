@@ -321,7 +321,7 @@ func (f *FancyEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field) 
 	f.printLabel(colorLabel(labelMessage), colorMessageValue(entry.Message))
 	f.printLabel(colorLabel(labelTimestamp), entry.Time.Format("2006-01-02 15:04:05 Z07:00"))
 
-	if len(fields) == 0 {
+	if len(fields)+len(f.fieldValues) == 0 {
 		f.printHL()
 		buf := f.buf
 		f.Free()
