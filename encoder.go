@@ -308,7 +308,9 @@ var (
 )
 
 func (f *FancyEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field) (*buffer.Buffer, error) {
-	f.fieldValues = make([]fieldValue, 0)
+	if f.fieldValues == nil {
+		f.fieldValues = make([]fieldValue, 0)
+	}
 	colorMessageValue := colorMessage
 	if entry.Level == zapcore.WarnLevel {
 		colorMessageValue = colorLabelWarn
@@ -350,7 +352,7 @@ func (f *FancyEncoder) Free() {
 }
 
 func (f *FancyEncoder) printLabel(label string, value string) {
-	_, _ = fmt.Fprintf(f.buf, fmt.Sprintf("%%%ds: %%s\n", len(labelLonger)+2), label, value)
+	_, _ = fmt.Fprintf(f.buf, fmt.Sprintf("%%-%ds: %%s\n", len(labelLonger)+2), label, value)
 }
 
 func (f *FancyEncoder) printFields(prefix string, fields []fieldValue) {
@@ -360,7 +362,7 @@ func (f *FancyEncoder) printFields(prefix string, fields []fieldValue) {
 			maxLen = len(field.key)
 		}
 	}
-	format := fmt.Sprintf("      %%s %%%ds: %%s\n", maxLen)
+	format := fmt.Sprintf("      %%s %%-%ds: %%s\n", maxLen)
 	for i, field := range fields {
 		p := "├─"
 		if i == len(fields)-1 {

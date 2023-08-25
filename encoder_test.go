@@ -15,6 +15,9 @@ func TestFancyEncoder(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer logger.Sync()
+
+	logger = logger.With(zap.String("persistent", "value"))
+
 	logger.Info("Hello, world!",
 		zap.String("id", "123"),
 		zap.Object("obj", zapcore.ObjectMarshalerFunc(func(enc zapcore.ObjectEncoder) error {
