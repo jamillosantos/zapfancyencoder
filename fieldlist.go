@@ -3,6 +3,7 @@ package zapfancyencoder
 import (
 	"fmt"
 	"time"
+	"unicode"
 
 	"go.uber.org/zap/zapcore"
 )
@@ -36,7 +37,20 @@ func (f *fieldList) AddObject(key string, marshaler zapcore.ObjectMarshaler) err
 	return err
 }
 
+func isPrintable(s []rune) bool {
+	for i := 0; i < len(s); i++ {
+		if !unicode.IsPrint(s[i]) {
+			return false
+		}
+	}
+	return true
+}
+
 func (f *fieldList) AddBinary(key string, value []byte) {
+	if isPrintable([]rune(string(value))) {
+		f.AddString(key, string(value))
+		return
+	}
 	f.AddString(key, fmt.Sprintf("%x", value))
 }
 

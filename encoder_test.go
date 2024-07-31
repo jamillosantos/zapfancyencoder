@@ -81,5 +81,6 @@ func TestFancyEncoder(t *testing.T) {
 			enc.AddInt("age", 34)
 			return nil
 		})),
+		zap.Any("extra", []byte("extra value")),
 	)
 }
