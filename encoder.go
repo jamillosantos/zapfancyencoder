@@ -2,7 +2,6 @@ package zapfancyencoder
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/fatih/color"
 	"go.uber.org/zap"
@@ -42,257 +41,12 @@ type fieldValue struct {
 }
 
 type FancyEncoder struct {
+	fieldList
+
 	buf             *buffer.Buffer
 	maxFieldNameLen int
 	openNamespaces  int
-	fieldValues     []fieldValue
 	idx             int
-}
-
-func (f *FancyEncoder) AddArray(key string, marshaler zapcore.ArrayMarshaler) error {
-	fv := fieldValue{
-		key: key,
-	}
-	fvs := f.fieldValues
-	f.fieldValues = make([]fieldValue, 0)
-	f.openNamespaces++
-	idx := f.idx
-	f.idx = 0
-	err := marshaler.MarshalLogArray(f)
-	f.idx = idx
-	fv.fields = f.fieldValues
-	f.fieldValues = append(fvs, fv)
-	f.openNamespaces--
-	return err
-}
-
-func (f *FancyEncoder) AddObject(key string, marshaler zapcore.ObjectMarshaler) error {
-	fv := fieldValue{
-		key: key,
-	}
-	fvs := f.fieldValues
-	f.fieldValues = make([]fieldValue, 0)
-	f.openNamespaces++
-	err := marshaler.MarshalLogObject(f)
-	fv.fields = f.fieldValues
-	f.fieldValues = append(fvs, fv)
-	f.openNamespaces--
-	return err
-}
-
-func (f *FancyEncoder) AddBinary(key string, value []byte) {
-	f.AddString(key, fmt.Sprintf("%x", value))
-}
-
-func (f *FancyEncoder) AddByteString(key string, value []byte) {
-	f.AddString(key, string(value))
-}
-
-func (f *FancyEncoder) AddBool(key string, value bool) {
-	f.AddString(key, fmt.Sprintf("%t", value))
-}
-
-func (f *FancyEncoder) AddComplex128(key string, value complex128) {
-	f.AddString(key, fmt.Sprintf("%f", value))
-}
-
-func (f *FancyEncoder) AddComplex64(key string, value complex64) {
-	f.AddString(key, fmt.Sprintf("%f", value))
-}
-
-func (f *FancyEncoder) AddDuration(key string, value time.Duration) {
-	f.AddString(key, value.String())
-}
-
-func (f *FancyEncoder) AddFloat64(key string, value float64) {
-	f.AddString(key, fmt.Sprintf("%f", value))
-}
-
-func (f *FancyEncoder) AddFloat32(key string, value float32) {
-	f.AddString(key, fmt.Sprintf("%f", value))
-}
-
-func (f *FancyEncoder) AddInt(key string, value int) {
-	f.AddString(key, fmt.Sprintf("%d", value))
-}
-
-func (f *FancyEncoder) AddInt64(key string, value int64) {
-	f.AddString(key, fmt.Sprintf("%d", value))
-}
-
-func (f *FancyEncoder) AddInt32(key string, value int32) {
-	f.AddString(key, fmt.Sprintf("%d", value))
-}
-
-func (f *FancyEncoder) AddInt16(key string, value int16) {
-	f.AddString(key, fmt.Sprintf("%d", value))
-}
-
-func (f *FancyEncoder) AddInt8(key string, value int8) {
-	f.AddString(key, fmt.Sprintf("%d", value))
-}
-
-func (f *FancyEncoder) AddString(key, value string) {
-	f.fieldValues = append(f.fieldValues, fieldValue{key: key, value: value})
-}
-
-func (f *FancyEncoder) AddTime(key string, value time.Time) {
-	f.AddString(key, value.Format(time.RFC3339))
-}
-
-func (f *FancyEncoder) AddUint(key string, value uint) {
-	f.AddString(key, fmt.Sprintf("%d", value))
-}
-
-func (f *FancyEncoder) AddUint64(key string, value uint64) {
-	f.AddString(key, fmt.Sprintf("%d", value))
-}
-
-func (f *FancyEncoder) AddUint32(key string, value uint32) {
-	f.AddString(key, fmt.Sprintf("%d", value))
-}
-
-func (f *FancyEncoder) AddUint16(key string, value uint16) {
-	f.AddString(key, fmt.Sprintf("%d", value))
-}
-
-func (f *FancyEncoder) AddUint8(key string, value uint8) {
-	f.AddString(key, fmt.Sprintf("%d", value))
-}
-
-func (f *FancyEncoder) AddUintptr(key string, value uintptr) {
-	f.AddString(key, fmt.Sprintf("%x", value))
-}
-
-func (f *FancyEncoder) AddReflected(key string, value interface{}) error {
-	f.AddString(key, fmt.Sprintf("%+v", value))
-	return nil
-}
-
-func (f *FancyEncoder) AppendBool(b bool) {
-	f.AppendString(fmt.Sprintf("%t", b))
-}
-
-func (f *FancyEncoder) AppendByteString(bytes []byte) {
-	f.AppendString(string(bytes))
-}
-
-func (f *FancyEncoder) AppendComplex128(c complex128) {
-	f.AppendString(fmt.Sprintf("%f", c))
-}
-
-func (f *FancyEncoder) AppendComplex64(c complex64) {
-	f.AppendString(fmt.Sprintf("%f", c))
-}
-
-func (f *FancyEncoder) AppendFloat64(f2 float64) {
-	f.AppendString(fmt.Sprintf("%f", f2))
-}
-
-func (f *FancyEncoder) AppendFloat32(f2 float32) {
-	f.AppendString(fmt.Sprintf("%f", f2))
-}
-
-func (f *FancyEncoder) AppendInt(i int) {
-	f.AppendString(fmt.Sprintf("%d", i))
-}
-
-func (f *FancyEncoder) AppendInt64(i int64) {
-	f.AppendString(fmt.Sprintf("%d", i))
-}
-
-func (f *FancyEncoder) AppendInt32(i int32) {
-	f.AppendString(fmt.Sprintf("%d", i))
-}
-
-func (f *FancyEncoder) AppendInt16(i int16) {
-	f.AppendString(fmt.Sprintf("%d", i))
-}
-
-func (f *FancyEncoder) AppendInt8(i int8) {
-	f.AppendString(fmt.Sprintf("%d", i))
-}
-
-func (f *FancyEncoder) AppendString(s string) {
-	f.fieldValues = append(f.fieldValues, fieldValue{
-		key:   fmt.Sprintf("[%d]", f.idx),
-		value: s,
-	})
-	f.idx++
-}
-
-func (f *FancyEncoder) AppendUint(u uint) {
-	f.AppendString(fmt.Sprintf("%d", u))
-}
-
-func (f *FancyEncoder) AppendUint64(u uint64) {
-	f.AppendString(fmt.Sprintf("%d", u))
-}
-
-func (f *FancyEncoder) AppendUint32(u uint32) {
-	f.AppendString(fmt.Sprintf("%d", u))
-}
-
-func (f *FancyEncoder) AppendUint16(u uint16) {
-	f.AppendString(fmt.Sprintf("%d", u))
-}
-
-func (f *FancyEncoder) AppendUint8(u uint8) {
-	f.AppendString(fmt.Sprintf("%d", u))
-}
-
-func (f *FancyEncoder) AppendUintptr(u uintptr) {
-	f.AppendString(fmt.Sprintf("%x", u))
-}
-
-func (f *FancyEncoder) AppendDuration(duration time.Duration) {
-	f.AppendString(duration.String())
-}
-
-func (f *FancyEncoder) AppendTime(t time.Time) {
-	f.AppendString(t.Format(time.RFC3339))
-}
-
-func (f *FancyEncoder) AppendArray(marshaler zapcore.ArrayMarshaler) error {
-	fv := fieldValue{
-		key: fmt.Sprintf("[%d]", f.idx),
-	}
-	fvs := f.fieldValues
-	f.fieldValues = make([]fieldValue, 0)
-	f.openNamespaces++
-	idx := f.idx + 1
-	f.idx = 0
-	err := marshaler.MarshalLogArray(f)
-	f.idx = idx
-	fv.fields = f.fieldValues
-	f.fieldValues = append(fvs, fv)
-	f.openNamespaces--
-	return err
-}
-
-func (f *FancyEncoder) AppendObject(marshaler zapcore.ObjectMarshaler) error {
-	fv := fieldValue{
-		key: fmt.Sprintf("[%d]", f.idx),
-	}
-	fvs := f.fieldValues
-	f.fieldValues = make([]fieldValue, 0)
-	f.openNamespaces++
-	idx := f.idx + 1
-	err := marshaler.MarshalLogObject(f)
-	f.idx = idx
-	fv.fields = f.fieldValues
-	f.fieldValues = append(fvs, fv)
-	f.openNamespaces--
-	return err
-}
-
-func (f *FancyEncoder) AppendReflected(value interface{}) error {
-	f.AppendString(fmt.Sprintf("%+v", value))
-	return nil
-}
-
-func (f *FancyEncoder) OpenNamespace(key string) {
-	f.openNamespaces++
 }
 
 func (f *FancyEncoder) Clone() zapcore.Encoder {
@@ -308,9 +62,14 @@ var (
 )
 
 func (f *FancyEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field) (*buffer.Buffer, error) {
-	if f.fieldValues == nil {
-		f.fieldValues = make([]fieldValue, 0)
+	fl := fieldList{
+		fieldValues: make([]fieldValue, 0, len(fields)+len(f.fieldValues)),
 	}
+	fl.fieldValues = append(fl.fieldValues, f.fieldValues...)
+	for _, field := range fields {
+		field.AddTo(&fl)
+	}
+
 	colorMessageValue := colorMessage
 	if entry.Level == zapcore.WarnLevel {
 		colorMessageValue = colorLabelWarn
@@ -321,7 +80,7 @@ func (f *FancyEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field) 
 	f.printLabel(colorLabel(labelMessage), colorMessageValue(entry.Message))
 	f.printLabel(colorLabel(labelTimestamp), entry.Time.Format("2006-01-02 15:04:05 Z07:00"))
 
-	if len(fields)+len(f.fieldValues) == 0 {
+	if len(fl.fieldValues) == 0 {
 		f.printHL()
 		buf := f.buf
 		f.Free()
@@ -335,10 +94,7 @@ func (f *FancyEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field) 
 			f.maxFieldNameLen = len(field.Key)
 		}
 	}
-	for _, field := range fields {
-		field.AddTo(f)
-	}
-	f.printFields("", f.fieldValues)
+	f.printFields("", fl.fieldValues)
 	f.printHL()
 	buf := f.buf
 	f.Free()

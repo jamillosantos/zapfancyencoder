@@ -7,6 +7,8 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// TestFancyEncoder is not really testing but rendering the test for visual inspection.
+// A proper test should be written to assert the output.
 func TestFancyEncoder(t *testing.T) {
 	b := zap.NewDevelopmentConfig()
 	b.Encoding = "fancy"
@@ -14,19 +16,22 @@ func TestFancyEncoder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
+	defer func() {
+		_ = logger.Sync()
+	}()
 
-	logger = logger.With(zap.String("persistent", "value"))
+	logger = logger.With(zap.String("persistent", "persisted value"))
 
-	logger.Info("Hello, world!",
-		zap.String("id", "123"),
+	logger.Info("message 1",
+		zap.String("id", "1"),
 		zap.Object("obj", zapcore.ObjectMarshalerFunc(func(enc zapcore.ObjectEncoder) error {
-			enc.AddString("name", "John")
-			enc.AddInt("age", 32)
+			enc.AddString("prop1", "value 1")
+			enc.AddInt("prop2", 2)
 			return nil
 		})),
 	)
-	logger.Warn("test error message",
+
+	logger.Warn("message 2",
 		zap.String("id", "123"),
 		zap.Object("obj", zapcore.ObjectMarshalerFunc(func(enc zapcore.ObjectEncoder) error {
 			enc.AddString("name", "John")
@@ -50,11 +55,30 @@ func TestFancyEncoder(t *testing.T) {
 			return nil
 		})),
 	)
-	logger.Error("test error message",
-		zap.String("id", "123"),
+
+	logger.Error("test error message 2",
+		zap.String("id", "2"),
 		zap.Object("obj", zapcore.ObjectMarshalerFunc(func(enc zapcore.ObjectEncoder) error {
-			enc.AddString("name", "John")
+			enc.AddString("name", "John 2")
 			enc.AddInt("age", 32)
+			return nil
+		})),
+	)
+
+	logger.Error("test error message 3",
+		zap.String("id", "3"),
+		zap.Object("obj", zapcore.ObjectMarshalerFunc(func(enc zapcore.ObjectEncoder) error {
+			enc.AddString("name", "John 3")
+			enc.AddInt("age", 33)
+			return nil
+		})),
+	)
+
+	logger.Error("test error message 4",
+		zap.String("id", "4"),
+		zap.Object("obj", zapcore.ObjectMarshalerFunc(func(enc zapcore.ObjectEncoder) error {
+			enc.AddString("name", "John 4")
+			enc.AddInt("age", 34)
 			return nil
 		})),
 	)
